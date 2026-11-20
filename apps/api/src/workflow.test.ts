@@ -278,7 +278,7 @@ describe('PostgreSQL VIN journey and security', () => {
     ).toBe('available');
   });
   it('serves all bounded operational and analytics reads and rejects injection/invalid IDs', async () => {
-    await verifyReads(app, tokens.admin, { orderId, vehicleId, modelId, customerId, bookingId });
+    await verifyReads(app, tokens, { orderId, vehicleId, modelId, customerId, bookingId }, pool);
     expect(
       (await request(app).get('/api/models?sort=name;DROP%20TABLE%20models').set(auth())).status,
     ).toBe(422);

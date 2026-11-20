@@ -47,13 +47,16 @@ export function Dialog({
   children,
   onClose,
   drawer = false,
+  'aria-labelledby': labelledBy,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   drawer?: boolean;
+  'aria-labelledby'?: string;
 }) {
-  const titleId = useId();
+  const generatedTitleId = useId();
+  const titleId = labelledBy ?? generatedTitleId;
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null;

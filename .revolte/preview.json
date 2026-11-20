@@ -1,7 +1,7 @@
 {
   "version": 2,
   "port": 4173,
-  "start": "npm run dev",
+  "start": "npm run db:migrate && npm run dev",
   "install": [
     {
       "name": "Node.js 22",
@@ -12,11 +12,6 @@
       "name": "npm dependencies",
       "check": "test -d node_modules/vite && test -d node_modules/drizzle-orm",
       "run": "npm ci"
-    },
-    {
-      "name": "Controlled migrations",
-      "check": "node --env-file=.env --import tsx scripts/schema-ready.ts",
-      "run": "npm run db:migrate"
     }
   ],
   "services": [

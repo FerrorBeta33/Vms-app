@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Row } from '@dealerflow/contracts';
 import { useApi } from '../lib/api';
 import { Dialog, State, control } from './ui';
 export function SearchDialog({ onClose }: { onClose: () => void }) {
+  const titleId = useId();
   const [text, setText] = useState('');
   const [term, setTerm] = useState('');
   const [params] = useSearchParams();
@@ -15,7 +16,7 @@ export function SearchDialog({ onClose }: { onClose: () => void }) {
   query.set('q', term);
   const result = useApi<{ items: Row[] }>(`/analytics/search?${query}`, term.length >= 2);
   return (
-    <Dialog title="Search workspace" onClose={onClose}>
+    <Dialog title="Search workspace" aria-labelledby={titleId} onClose={onClose}>
       <label className="grid gap-2 text-sm">
         VIN, model, customer, booking or invoice
         <input

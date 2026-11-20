@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { rupeesToPaise } from '@dealerflow/contracts';
 import { type useAction } from '../lib/api';
 import { Button, Dialog, control } from '../components/ui';
@@ -19,11 +19,14 @@ export function BookingDialogs({
   closeConversion: () => void;
   action: ReturnType<typeof useAction>;
 }) {
+  const dialogId = useId();
+  const cancelTitleId = `${dialogId}-cancel-title`;
+  const conversionTitleId = `${dialogId}-conversion-title`;
   const [error, setError] = useState('');
   return (
     <>
       {confirm && (
-        <Dialog title="Cancel this booking?" onClose={closeConfirm}>
+        <Dialog title="Cancel this booking?" aria-labelledby={cancelTitleId} onClose={closeConfirm}>
           <p className="mb-6 text-sm text-muted-foreground">
             This releases VIN {vin} back to available inventory. Converted bookings cannot be
             cancelled.
@@ -43,7 +46,11 @@ export function BookingDialogs({
         </Dialog>
       )}
       {conversion && (
-        <Dialog title="Create sales order" onClose={closeConversion}>
+        <Dialog
+          title="Create sales order"
+          aria-labelledby={conversionTitleId}
+          onClose={closeConversion}
+        >
           <form
             className="space-y-4"
             onSubmit={(event) => {

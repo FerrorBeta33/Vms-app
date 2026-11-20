@@ -7,9 +7,11 @@ import { rupeesToPaise, formatMoney, businessWindow, querySchema } from '@dealer
 import { Select, Dialog } from '../components/ui';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import { queryClient, useDebouncedSearch } from '../lib/api';
+import { queryClient, useDebouncedSearch, useAction } from '../lib/api';
 import { SearchDialog } from '../components/search-dialog';
 import { ResourceViews } from '../operations/resource-views';
+import { ResourceList } from '../operations/resource-list';
+import { BookingDialogs } from '../operations/booking-dialogs';
 import { Invoice } from '../operations/invoice';
 import { BranchWidget } from './branch-widget';
 import { TrendWidget } from './trend-widget';
@@ -49,6 +51,20 @@ function SearchHarness() {
       </output>
       <button onClick={() => setPage(2)}>Next page</button>
     </>
+  );
+}
+function BookingHarness() {
+  const action = useAction();
+  return (
+    <BookingDialogs
+      id="booking"
+      vin="DEMO-VIN"
+      confirm
+      conversion
+      closeConfirm={() => {}}
+      closeConversion={() => {}}
+      action={action}
+    />
   );
 }
 function renderWorkspace(children: React.ReactNode) {
@@ -92,6 +108,7 @@ describe('UI quality regressions', () => {
     renderWorkspace(
       <>
         <SearchDialog onClose={() => {}} />
+        <BookingHarness />
         <Dialog title="Another panel" onClose={() => {}}>
           Content
         </Dialog>
@@ -100,6 +117,10 @@ describe('UI quality regressions', () => {
     const search = screen.getByRole('dialog', { name: 'Search workspace' });
     const other = screen.getByRole('dialog', { name: 'Another panel' });
     expect(search.getAttribute('aria-labelledby')).not.toBe(other.getAttribute('aria-labelledby'));
+    for (const name of ['Cancel this booking?', 'Create sales order']) {
+      const panel = screen.getByRole('dialog', { name });
+      expect(panel.querySelector('h2')?.id).toBe(panel.getAttribute('aria-labelledby'));
+    }
   });
   it('distinguishes empty and filtered no-results lists without rendering empty tables', () => {
     queryClient.setQueryData(['api', '/analytics/stock?'], { branches: [], comparison: [] });
@@ -118,6 +139,43 @@ describe('UI quality regressions', () => {
     expect(screen.getByText('No trend records match your filters.')).toBeTruthy();
     expect(screen.getByText('No records match your filters.')).toBeTruthy();
     expect(screen.queryAllByRole('table')).toHaveLength(0);
+  });
+  it('owns record loading, empty, no-results and errors at the collection level', () => {
+    const employee = {
+      id: 'viewer',
+      name: 'Viewer',
+      email: 'viewer@example.test',
+      role: 'inventory' as const,
+    };
+    queryClient.setQueryData(['api', '/branches'], { items: [] });
+    queryClient.setQueryData(['api', '/models?limit=100'], {
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 100,
+    });
+    const view = renderWorkspace(<ResourceList resource="customers" employee={employee} />);
+    expect(screen.getByRole('status', { name: 'Loading records' })).toBeTruthy();
+    view.unmount();
+    queryClient.setQueryData(['api', '/customers?'], { items: [], total: 0, page: 1, limit: 20 });
+    const empty = renderWorkspace(<ResourceList resource="customers" employee={employee} />);
+    expect(
+      screen.getByText('No records yet. Create the first record to get started.'),
+    ).toBeTruthy();
+    empty.unmount();
+    const filtered = renderWorkspace(
+      <ResourceViews resource="inventory" items={[]} search="q=missing" />,
+    );
+    expect(screen.getByText('No records match your filters.')).toBeTruthy();
+    expect(screen.queryByRole('row')).toBeNull();
+    filtered.unmount();
+    queryClient
+      .getQueryCache()
+      .find({ queryKey: ['api', '/customers?'] })!
+      .setState({ status: 'error', error: new Error('Contact records unavailable') });
+    renderWorkspace(<ResourceList resource="customers" employee={employee} />);
+    expect(screen.getByRole('alert').textContent).toContain('Contact records unavailable');
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
   });
   it('preserves loading and retryable error states in list widgets', () => {
     const loading = renderWorkspace(<BranchWidget scope="q=uncached" />);

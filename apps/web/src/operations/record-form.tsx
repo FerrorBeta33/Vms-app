@@ -14,16 +14,20 @@ export function RecordForm({
   employee: Employee;
 }) {
   const navigate = useNavigate();
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    const pricePaise = BigInt(str(initial.base_price_paise, '0'));
+    const basePrice = [pricePaise / 100n, (pricePaise % 100n).toString().padStart(2, '0')].join(
+      '.',
+    );
+    return Object.fromEntries(
       (fields[resource] || []).map((field) => [
         field.name,
         field.name === 'base_price'
-          ? `${BigInt(str(initial.base_price_paise, '0')) / 100n}.${(BigInt(str(initial.base_price_paise, '0')) % 100n).toString().padStart(2, '0')}`
+          ? basePrice
           : str(initial[field.name], field.options?.[0] || ''),
       ]),
-    ),
-  );
+    );
+  });
   const [localError, setLocalError] = useState('');
   const action = useAction((row) => navigate(`/${resource}/${str(row.id)}`));
   const errors = action.error instanceof ApiError ? action.error.fields : {};
