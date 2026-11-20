@@ -9,12 +9,14 @@ export function ContextBar({
   preset,
   setPreset,
   customize,
+  customizing = false,
   asOf,
 }: {
   employee: Employee;
   preset: string;
   setPreset: (value: string) => void;
   customize: () => void;
+  customizing?: boolean;
   asOf?: string;
 }) {
   const [mobile, setMobile] = useState(false);
@@ -44,7 +46,7 @@ export function ContextBar({
           ) : (
             <p className="flex h-11 items-center text-sm font-medium">Operations Flow</p>
           )}
-          <Button secondary onClick={customize}>
+          <Button secondary onClick={customize} aria-haspopup="dialog" aria-expanded={customizing}>
             <LayoutGrid size={15} />
             Customize
           </Button>

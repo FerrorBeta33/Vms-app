@@ -15,7 +15,7 @@ export function StockWidget({ scope }: { scope: string }) {
     <State query={result}>
       {(data) =>
         data.distribution.length ? (
-          <div className="grid items-center gap-4 p-6 sm:grid-cols-2">
+          <div className="grid items-center gap-4 p-6 @lg:grid-cols-2">
             <div className="h-44 min-w-0" aria-hidden="true">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

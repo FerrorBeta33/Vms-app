@@ -47,6 +47,24 @@ export async function verifyReads(
   }
   await verifyCustomerEdits(app, tokens, customerId, pool);
 }
+export async function verifyEntryLookups(app: Express, token: string, ids: Record<string, string>) {
+  const lookups = [
+    ['/models?limit=20&q=Road', ids.modelId],
+    [`/vehicles?limit=20&status=available&model_id=${ids.modelId}`, ids.vehicleId],
+    ['/customers?limit=20&q=Updated', ids.customerId],
+  ];
+  for (const [endpoint, expectedId] of lookups) {
+    const response = await request(app)
+      .get(`/api${endpoint}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.items.map((item: { id: string }) => item.id)).toContain(expectedId);
+    expect(response.body.total).toBeGreaterThan(0);
+  }
+  const health = await request(app).get('/api/health');
+  expect(health.status).toBe(200);
+  expect(health.body).toEqual({ status: 'ready', database: 'postgresql' });
+}
 async function verifyCustomerEdits(
   app: Express,
   tokens: Record<string, string>,

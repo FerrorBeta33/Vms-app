@@ -1,10 +1,23 @@
-import { Link, useParams } from 'react-router-dom';
-import { can, type Employee } from '@dealerflow/contracts';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { can, id as identifier, type Employee, type Row } from '@dealerflow/contracts';
 import { useApi } from '../lib/api';
 import { State } from '../components/ui';
 import { RecordForm } from './record-form';
+import { FlowGuidance } from './flow-guidance';
 export function ResourceForm({ resource, employee }: { resource: string; employee: Employee }) {
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const selected: Row = {};
+  const selectionKeys =
+    resource === 'inventory'
+      ? ['model_id', 'branch_id']
+      : resource === 'bookings'
+        ? ['customer_id', 'vehicle_id']
+        : [];
+  for (const key of selectionKeys) {
+    const parsed = identifier.safeParse(params.get(key));
+    if (parsed.success) selected[key] = parsed.data;
+  }
   const endpoint = resource === 'inventory' ? 'vehicles' : resource;
   const result = useApi(`/${endpoint}/${id}`, !!id);
   if (!can(employee.role, ['models', 'inventory'].includes(resource) ? 'catalog' : 'sales'))
@@ -24,12 +37,18 @@ export function ResourceForm({ resource, employee }: { resource: string; employe
               ? 'customer'
               : 'booking'}
       </h1>
+      {!id && <FlowGuidance resource={resource} employee={employee} />}
       {id ? (
         <State query={result}>
           {(data) => <RecordForm key={id} resource={resource} initial={data} employee={employee} />}
         </State>
       ) : (
-        <RecordForm resource={resource} initial={{}} employee={employee} />
+        <RecordForm
+          key={`${resource}-${params}`}
+          resource={resource}
+          initial={selected}
+          employee={employee}
+        />
       )}
     </>
   );

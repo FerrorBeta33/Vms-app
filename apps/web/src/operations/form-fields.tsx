@@ -55,6 +55,17 @@ export function Picker({
   const result = useApi<List>(
     `/${field.resource}?limit=20&page=${page}&q=${encodeURIComponent(term)}${field.resource === 'vehicles' ? '&status=available' : ''}`,
   );
+  const selected = useApi(
+    `/${field.resource}/${value}`,
+    !!value &&
+      field.resource !== 'branches' &&
+      !result.data?.items.some((item) => item.id === value),
+  );
+  function optionLabel(item: Record<string, unknown>) {
+    return field.resource === 'vehicles'
+      ? `${str(item.model_name)} · ${str(item.vin)} · ${str(item.branch_name)}`
+      : `${item.brand ? `${str(item.brand)} ` : ''}${str(item.name)}${item.variant ? ` · ${str(item.variant)}` : ''}`;
+  }
   return (
     <fieldset className="space-y-2">
       <legend className="mb-2 text-sm font-medium">{field.label} *</legend>
@@ -74,21 +85,28 @@ export function Picker({
           <>
             <Select
               label={`Select ${field.label}`}
+              name={field.name}
+              required
               value={value}
               onChange={(event) => onChange(event.target.value)}
             >
               <option value="">Choose {field.label.toLowerCase()}</option>
               {!data.items.some((item) => item.id === value) && value && (
-                <option value={value}>Current selection · {value.slice(0, 8)}</option>
+                <option value={value}>
+                  {selected.data ? optionLabel(selected.data) : 'Loading selected record…'}
+                </option>
               )}
               {data.items.map((item) => (
                 <option key={str(item.id)} value={str(item.id)}>
-                  {field.resource === 'vehicles'
-                    ? `${str(item.model_name)} · ${str(item.vin)} · ${str(item.branch_name)}`
-                    : `${str(item.name)}${item.variant ? ` · ${str(item.variant)}` : ''}`}
+                  {optionLabel(item)}
                 </option>
               ))}
             </Select>
+            {selected.isError && (
+              <p role="alert" className="text-xs text-destructive">
+                Selected record is unavailable. Choose another option.
+              </p>
+            )}
             {!data.items.length && (
               <p role="status" className="text-xs text-muted-foreground">
                 {term ? 'No options match your search.' : 'No options available yet.'}

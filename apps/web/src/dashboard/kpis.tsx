@@ -26,10 +26,20 @@ export function Kpis({ scope }: { scope: string }) {
           {metrics.map((metric, index) => {
             const Icon = icons[index];
             const value = summary[metric.key];
+            const formattedValue =
+              typeof value === 'string' ? formatMoney(value) : value.toLocaleString('en-IN');
+            const numberSize =
+              typeof value === 'string'
+                ? formattedValue.length > 16
+                  ? 'text-xs @xs:text-sm'
+                  : 'text-sm @xs:text-base'
+                : formattedValue.length > 8
+                  ? 'text-base @xs:text-lg'
+                  : 'text-lg @xs:text-xl';
             return (
               <article
                 key={metric.key}
-                className="relative min-w-0 rounded-container border border-border bg-card p-4 shadow-card"
+                className="@container relative min-w-0 rounded-container border border-border bg-card p-4 shadow-card"
               >
                 <div className="mb-4 flex items-center justify-between">
                   <span
@@ -42,9 +52,9 @@ export function Kpis({ scope }: { scope: string }) {
                 <Link className="block" to={scopedLink(metric.route, scope)}>
                   <p className="text-xs font-medium text-muted-foreground">{metric.label}</p>
                   <p
-                    className={`mt-2 break-words text-2xl font-semibold tracking-tight tabular-nums ${metric.key === 'ready' ? 'text-success' : ''}`}
+                    className={`mt-2 break-words font-semibold leading-snug tracking-tight tabular-nums ${numberSize} ${metric.key === 'ready' ? 'text-success' : ''}`}
                   >
-                    {typeof value === 'string' ? formatMoney(value) : value.toLocaleString('en-IN')}
+                    {formattedValue}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">{metric.unit}</p>
                 </Link>

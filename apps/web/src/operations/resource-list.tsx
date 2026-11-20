@@ -5,6 +5,7 @@ import { useApi, type List } from '../lib/api';
 import { Card, State, Empty, Button } from '../components/ui';
 import { ResourceFilters } from './resource-filters';
 import { ResourceViews } from './resource-views';
+import { FlowGuidance } from './flow-guidance';
 export const titles: Record<string, string> = {
   models: 'Model catalog',
   inventory: 'Vehicle inventory',
@@ -48,6 +49,7 @@ export function ResourceList({ resource, employee }: { resource: string; employe
           </Link>
         )}
       </header>
+      <FlowGuidance resource={resource} employee={employee} />
       <Card>
         <div className="border-b border-border p-4">
           <ResourceFilters resource={resource} />

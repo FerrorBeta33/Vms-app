@@ -26,7 +26,7 @@ export function ModelWidget({ scope }: { scope: string }) {
         {(data) => (
           <>
             {data.items.length ? (
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid min-w-0 gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
                 {data.items.map((model) => {
                   const counts = stock.data?.models.items.find((item) => item.id === model.id);
                   return (

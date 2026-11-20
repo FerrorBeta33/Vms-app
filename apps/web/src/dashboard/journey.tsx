@@ -69,13 +69,15 @@ export function Journey({ scope }: { scope: string }) {
                 <Link
                   key={label}
                   to={scopedLink(route, scope)}
-                  className="group relative rounded-container border border-border bg-background p-4 transition hover:border-primary hover:bg-secondary"
+                  className="@container group relative min-w-0 rounded-container border border-border bg-background p-4 transition hover:border-primary hover:bg-secondary"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <Icon size={20} className="text-primary" />
                     {index < 5 && <ArrowRight size={14} className="text-muted-foreground" />}
                   </div>
-                  <p className="text-2xl font-semibold">{value}</p>
+                  <p className="break-words text-lg font-semibold tabular-nums @xs:text-xl">
+                    {value.toLocaleString('en-IN')}
+                  </p>
                   <p className="mt-2 text-xs text-muted-foreground">{label}</p>
                 </Link>
               ))}

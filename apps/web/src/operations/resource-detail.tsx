@@ -3,8 +3,9 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { type Employee, type Row, can, formatMoney } from '@dealerflow/contracts';
 import { useApi, useAction, str, date } from '../lib/api';
 import { displayField } from '../lib/record';
-import { Card, State, Badge, Button, VehicleImage } from '../components/ui';
+import { Card, State, Badge, VehicleImage } from '../components/ui';
 import { BookingDialogs } from './booking-dialogs';
+import { RecordActions } from './record-actions';
 export function ResourceDetail({ resource, employee }: { resource: string; employee: Employee }) {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -74,33 +75,14 @@ export function ResourceDetail({ resource, employee }: { resource: string; emplo
               <div className="space-y-6">
                 <Card title="Next authorized action">
                   <div className="space-y-4 p-6">
-                    {resource === 'inventory' &&
-                    data.status === 'available' &&
-                    can(employee.role, 'sales') ? (
-                      <Link to="/bookings/new" className="text-sm font-medium text-primary">
-                        Create booking for an available VIN →
-                      </Link>
-                    ) : resource === 'bookings' &&
-                      data.status === 'confirmed' &&
-                      can(employee.role, 'sales') ? (
-                      <>
-                        <Button onClick={() => setConversion(true)}>Convert to sales order</Button>
-                        <Button secondary onClick={() => setConfirm(true)}>
-                          Cancel booking
-                        </Button>
-                      </>
-                    ) : resource === 'bookings' && data.order_id ? (
-                      <Link
-                        to={`/orders/${str(data.order_id)}?${params}`}
-                        className="text-sm text-primary"
-                      >
-                        Open sales order →
-                      </Link>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        This record has no pending action for your role.
-                      </p>
-                    )}
+                    <RecordActions
+                      resource={resource}
+                      data={data}
+                      employee={employee}
+                      onConvert={() => setConversion(true)}
+                      onCancel={() => setConfirm(true)}
+                      search={params.toString()}
+                    />
                     {action.error && (
                       <p role="alert" className="text-sm text-destructive">
                         {action.error.message}

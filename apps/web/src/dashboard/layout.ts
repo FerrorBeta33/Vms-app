@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { z } from 'zod';
 export const widgetKeys = ['stock', 'trends', 'models', 'branches', 'activity'] as const;
+export const widgetNames = {
+  stock: 'Stock at a glance',
+  trends: 'Transaction pulse',
+  models: 'Model spotlight',
+  branches: 'Across your branches',
+  activity: 'Recent activity',
+};
 const widget = z.object({
   key: z.enum(widgetKeys),
   size: z.enum(['small', 'medium', 'large']),
@@ -53,8 +60,10 @@ export function useLayout(employeeId: string, role: string, preset: string) {
     setDraft((current) => {
       const next = [...current];
       const from = next.findIndex((item) => item.key === key);
+      if (from < 0 || !Number.isInteger(direction)) return current;
       const to = Math.max(0, Math.min(next.length - 1, from + direction));
-      [next[from], next[to]] = [next[to], next[from]];
+      const [moving] = next.splice(from, 1);
+      next.splice(to, 0, moving);
       return next;
     });
   }
@@ -69,14 +78,20 @@ export function useLayout(employeeId: string, role: string, preset: string) {
         current.map((item) => (item.key === key ? { ...item, ...change } : item)),
       ),
     begin: () => {
+      setError('');
       setDraft(saved);
       setCustomizing(true);
     },
     cancel: () => {
+      setError('');
       setDraft(saved);
       setCustomizing(false);
     },
     save: () => save(draft),
-    reset: () => save(defaults(preset)),
+    reset: () => {
+      if (!customizing) return save(defaults(preset));
+      setDraft(defaults(preset));
+      setError('');
+    },
   };
 }

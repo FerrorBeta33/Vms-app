@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { rupeesToPaise, type Employee, type Row } from '@dealerflow/contracts';
+import { type Employee, type Row } from '@dealerflow/contracts';
 import { useAction, str, ApiError } from '../lib/api';
 import { Card, Button, control, Select } from '../components/ui';
 import { fields, Picker } from './form-fields';
+import { sampleDetails, recordPayload } from '../lib/record';
 export function RecordForm({
   resource,
   initial,
@@ -35,17 +36,7 @@ export function RecordForm({
     event.preventDefault();
     setLocalError('');
     try {
-      const body: Record<string, unknown> = { ...values };
-      if (resource === 'models') {
-        body.base_price_paise = rupeesToPaise(values.base_price);
-        delete body.base_price;
-        body.active = initial.active ?? true;
-      }
-      if (resource === 'bookings') {
-        if (values.booked_at)
-          body.booked_at = new Date(`${values.booked_at}T12:00:00+05:30`).toISOString();
-        else delete body.booked_at;
-      }
+      const body = recordPayload(resource, values, initial);
       action.mutate({
         path: `/${resource === 'inventory' ? 'vehicles' : resource}${initial.id ? `/${str(initial.id)}` : ''}`,
         method: initial.id ? 'PATCH' : 'POST',
@@ -63,6 +54,20 @@ export function RecordForm({
             Salesperson: {employee.name}. Select one available VIN; its branch and model are
             preserved automatically.
           </p>
+        )}
+        {!initial.id && resource !== 'bookings' && (
+          <div className="space-y-2">
+            <Button
+              secondary
+              type="button"
+              onClick={() => setValues({ ...values, ...sampleDetails(resource) })}
+            >
+              Fill sample details
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Fictional details only. Nothing is saved until you choose Create record.
+            </p>
+          </div>
         )}
         {fields[resource].map((field) => (
           <div key={field.name}>

@@ -1,6 +1,6 @@
 import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { verifyReads } from './test-reads.ts';
+import { verifyReads, verifyEntryLookups } from './test-reads.ts';
 process.env.NODE_ENV = 'test';
 if (
   !process.env.TEST_DATABASE_URL ||
@@ -121,6 +121,7 @@ describe('PostgreSQL VIN journey and security', () => {
           .send({ name: 'Updated Buyer', phone: '9876543210' })
       ).status,
     ).toBe(200);
+    await verifyEntryLookups(app, tokens.admin, { modelId, vehicleId, customerId });
   });
   it('commits exactly one concurrent VIN reservation and blocks committed stock edits', async () => {
     const results = await Promise.all([

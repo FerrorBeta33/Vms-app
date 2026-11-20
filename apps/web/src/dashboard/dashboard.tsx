@@ -12,8 +12,8 @@ import { TrendWidget } from './trend-widget';
 import { ModelWidget } from './model-widget';
 import { BranchWidget } from './branch-widget';
 import { ActivityWidget } from './activity-widget';
-import { useLayout, widgetKeys } from './layout';
-import { CustomizeBar, WidgetControls } from './customize';
+import { useLayout, widgetNames } from './layout';
+import { CustomizeBar } from './customize';
 import type { Summary } from './types';
 export function Dashboard({ employee }: { employee: Employee }) {
   const [preset, setPreset] = useState(
@@ -28,13 +28,6 @@ export function Dashboard({ employee }: { employee: Employee }) {
     />
   );
 }
-const names = {
-  stock: 'Stock at a glance',
-  trends: 'Transaction pulse',
-  models: 'Model spotlight',
-  branches: 'Across your branches',
-  activity: 'Recent activity',
-};
 function Workspace({
   employee,
   preset,
@@ -55,50 +48,32 @@ function Workspace({
         preset={preset}
         setPreset={setPreset}
         customize={layout.begin}
+        customizing={layout.customizing}
         asOf={summary.data?.asOf}
       />
+      {layout.customizing && <CustomizeBar layout={layout} />}
       <Kpis scope={scope} />
       <Journey scope={scope} />
-      {layout.customizing && <CustomizeBar layout={layout} />}
       <div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div className="md:col-span-2">
           <ActionCenter scope={scope} employee={employee} />
         </div>
         {layout.widgets
           .filter((widget) => layout.customizing || widget.visible)
-          .map((widget, index) => (
-            <div
+          .map((widget) => (
+            <section
               key={widget.key}
-              className={`min-w-0 ${widget.size === 'large' ? 'md:col-span-2 xl:col-span-3' : widget.size === 'medium' ? 'md:col-span-1 xl:col-span-2' : 'col-span-1'}`}
-              onDragOver={(event) => {
-                if (layout.customizing) event.preventDefault();
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (!layout.customizing) return;
-                const key = event.dataTransfer.getData('text/plain');
-                if (!widgetKeys.includes(key as (typeof widgetKeys)[number])) return;
-                const from = layout.draft.findIndex((item) => item.key === key);
-                const to = layout.draft.findIndex((item) => item.key === widget.key);
-                layout.move(key as (typeof widgetKeys)[number], to - from);
-              }}
+              aria-label={widgetNames[widget.key]}
+              className={`@container min-w-0 ${widget.size === 'large' ? 'md:col-span-2 xl:col-span-3' : widget.size === 'medium' ? 'md:col-span-1 xl:col-span-2' : 'col-span-1'}`}
             >
               <Card
-                title={names[widget.key]}
+                title={widgetNames[widget.key]}
                 aside={
                   <span className="text-xs text-muted-foreground">
                     {widget.key === 'trends' ? 'Selected event period' : 'Current scope'}
                   </span>
                 }
               >
-                {layout.customizing && (
-                  <WidgetControls
-                    widget={widget}
-                    index={index}
-                    total={layout.widgets.length}
-                    layout={layout}
-                  />
-                )}
                 <div className={widget.visible ? '' : 'opacity-40'}>
                   {widget.key === 'stock' ? (
                     <StockWidget scope={scope} />
@@ -113,7 +88,7 @@ function Workspace({
                   )}
                 </div>
               </Card>
-            </div>
+            </section>
           ))}
       </div>
       <footer className="flex flex-wrap justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">

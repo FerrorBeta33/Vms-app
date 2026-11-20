@@ -10,11 +10,11 @@ import {
   LogOut,
   Menu,
   Search,
-  ChevronRight,
   ShieldCheck,
 } from 'lucide-react';
 import type { Employee } from '@dealerflow/contracts';
 import { SearchDialog } from './search-dialog';
+import { DatabaseStatus } from './database-status';
 import { Button, Dialog } from './ui';
 const links = [
   { to: '/', label: 'Command Center', icon: LayoutDashboard },
@@ -108,9 +108,9 @@ export function Shell({
       <div className="min-w-0 lg:ml-60">
         <header
           data-no-print
-          className="flex min-h-16 items-center justify-between gap-4 border-b border-border bg-card px-4 sm:px-8"
+          className="flex min-h-16 flex-wrap items-center justify-between gap-4 border-b border-border bg-card px-4 py-2 sm:px-8"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Button
               secondary
               className="lg:hidden"
@@ -119,18 +119,20 @@ export function Shell({
             >
               <Menu size={18} />
             </Button>
-            <span className="hidden text-xs text-muted-foreground sm:inline">Workspace</span>
-            <ChevronRight className="hidden text-muted-foreground sm:block" size={14} />
-            <span className="text-sm font-medium">Dealership operations</span>
+            <span className="hidden text-sm font-medium md:inline">Dealership operations</span>
           </div>
-          <button
-            onClick={() => setSearch(true)}
-            className="flex min-h-11 items-center gap-3 rounded-control border border-border px-4 text-sm text-muted-foreground"
-          >
-            <Search size={16} />
-            <span className="hidden sm:inline">Search your workspace</span>
-            <kbd className="hidden rounded bg-muted px-1 text-xs md:inline">Search</kbd>
-          </button>
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <DatabaseStatus />
+            <button
+              aria-label="Search workspace"
+              onClick={() => setSearch(true)}
+              className="flex min-h-11 items-center gap-3 rounded-control border border-border px-4 text-sm text-muted-foreground"
+            >
+              <Search size={16} />
+              <span className="hidden sm:inline">Search your workspace</span>
+              <kbd className="hidden rounded bg-muted px-1 text-xs md:inline">Search</kbd>
+            </button>
+          </div>
         </header>
         <main id="content" className="mx-auto max-w-[1600px] space-y-6 p-4 sm:p-8">
           {children}
